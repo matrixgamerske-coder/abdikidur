@@ -8,7 +8,7 @@ const FeaturedGames = () => {
   const { data: games, isLoading } = useQuery({
     queryKey: ["featured-games"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("games")
         .select("*, platforms(name)")
         .eq("is_featured", true)
