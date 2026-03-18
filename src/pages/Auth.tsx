@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Gamepad2, Loader2 } from "lucide-react";
@@ -138,9 +139,9 @@ const Auth = () => {
                   />
                   <label htmlFor="terms" className="font-body text-xs text-muted-foreground leading-relaxed cursor-pointer">
                     I agree to the{" "}
-                    <span className="text-primary hover:underline">Terms & Conditions</span>,{" "}
-                    <span className="text-primary hover:underline">Privacy Policy</span>, and{" "}
-                    <span className="text-primary hover:underline">Acceptable Use Policy</span>.
+                    <Link to="/terms" className="text-primary hover:underline">Terms & Conditions</Link>,{" "}
+                    <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>, and{" "}
+                    <span className="text-primary">Acceptable Use Policy</span>.
                   </label>
                 </div>
               )}
