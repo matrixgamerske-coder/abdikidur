@@ -9,6 +9,7 @@ import { useCart } from "@/hooks/useCart";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { itemCount } = useCart();
   const navigate = useNavigate();
 
   const navItems = [
