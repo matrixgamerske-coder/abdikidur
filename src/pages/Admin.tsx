@@ -97,20 +97,19 @@ const Admin = () => {
 
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
-      const fileName = `${crypto.randomUUID()}.${ext}`;
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "matrixgamers");
 
-      const { error: uploadError } = await supabase.storage
-        .from("game-covers")
-        .upload(fileName, file, { contentType: file.type });
+      const res = await fetch("https://api.cloudinary.com/v1_1/djhudxxg3/image/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-      if (uploadError) throw uploadError;
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("game-covers")
-        .getPublicUrl(fileName);
-
-      setForm((prev) => ({ ...prev, cover_image: publicUrl }));
+      setForm((prev) => ({ ...prev, cover_image: data.secure_url }));
       toast.success("Cover image uploaded!");
     } catch (err: any) {
       toast.error(err.message || "Upload failed");
