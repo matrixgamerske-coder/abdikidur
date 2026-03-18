@@ -14,16 +14,274 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      game_drive_links: {
+        Row: {
+          created_at: string | null
+          drive_url: string
+          game_id: string
+          id: string
+          label: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          drive_url: string
+          game_id: string
+          id?: string
+          label?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          drive_url?: string
+          game_id?: string
+          id?: string
+          label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_drive_links_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_images: {
+        Row: {
+          created_at: string | null
+          game_id: string
+          id: string
+          image_url: string
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          game_id: string
+          id?: string
+          image_url: string
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          game_id?: string
+          id?: string
+          image_url?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_images_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_specs: {
+        Row: {
+          created_at: string | null
+          game_id: string
+          graphics: string | null
+          id: string
+          memory: string | null
+          os: string | null
+          processor: string | null
+          spec_type: string
+          storage: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          game_id: string
+          graphics?: string | null
+          id?: string
+          memory?: string | null
+          os?: string | null
+          processor?: string | null
+          spec_type?: string
+          storage?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          game_id?: string
+          graphics?: string | null
+          id?: string
+          memory?: string | null
+          os?: string | null
+          processor?: string | null
+          spec_type?: string
+          storage?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_specs_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      games: {
+        Row: {
+          cover_image: string | null
+          created_at: string | null
+          description: string | null
+          genre: string | null
+          id: string
+          is_featured: boolean | null
+          platform_id: string | null
+          price: number
+          rating: number | null
+          title: string
+        }
+        Insert: {
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          genre?: string | null
+          id?: string
+          is_featured?: boolean | null
+          platform_id?: string | null
+          price?: number
+          rating?: number | null
+          title: string
+        }
+        Update: {
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          genre?: string | null
+          id?: string
+          is_featured?: boolean | null
+          platform_id?: string | null
+          price?: number
+          rating?: number | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "games_platform_id_fkey"
+            columns: ["platform_id"]
+            isOneToOne: false
+            referencedRelation: "platforms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platforms: {
+        Row: {
+          created_at: string | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          id: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      purchases: {
+        Row: {
+          amount: number
+          game_id: string
+          id: string
+          payment_status: string
+          purchased_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          game_id: string
+          id?: string
+          payment_status?: string
+          purchased_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          game_id?: string
+          id?: string
+          payment_status?: string
+          purchased_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +408,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const

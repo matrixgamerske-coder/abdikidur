@@ -2,46 +2,30 @@ import { motion } from "framer-motion";
 import { ArrowRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import GameShowcase from "./GameShowcase";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16">
       {/* Animated background orbs */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          animate={{
-            x: [0, 100, -50, 0],
-            y: [0, -80, 50, 0],
-            scale: [1, 1.2, 0.8, 1],
-          }}
+          animate={{ x: [0, 100, -50, 0], y: [0, -80, 50, 0], scale: [1, 1.2, 0.8, 1] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
           className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full"
-          style={{
-            background: "radial-gradient(circle, hsl(160 100% 50% / 0.1) 0%, transparent 70%)",
-          }}
+          style={{ background: "radial-gradient(circle, hsl(160 100% 50% / 0.1) 0%, transparent 70%)" }}
         />
         <motion.div
-          animate={{
-            x: [0, -80, 60, 0],
-            y: [0, 60, -40, 0],
-            scale: [1, 0.9, 1.1, 1],
-          }}
+          animate={{ x: [0, -80, 60, 0], y: [0, 60, -40, 0], scale: [1, 0.9, 1.1, 1] }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
           className="absolute bottom-1/3 right-1/4 w-80 h-80 rounded-full"
-          style={{
-            background: "radial-gradient(circle, hsl(280 100% 60% / 0.1) 0%, transparent 70%)",
-          }}
+          style={{ background: "radial-gradient(circle, hsl(280 100% 60% / 0.1) 0%, transparent 70%)" }}
         />
         <motion.div
-          animate={{
-            x: [0, 50, -80, 0],
-            y: [0, -60, 80, 0],
-          }}
+          animate={{ x: [0, 50, -80, 0], y: [0, -60, 80, 0] }}
           transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
           className="absolute top-1/2 right-1/3 w-72 h-72 rounded-full"
-          style={{
-            background: "radial-gradient(circle, hsl(200 100% 55% / 0.08) 0%, transparent 70%)",
-          }}
+          style={{ background: "radial-gradient(circle, hsl(200 100% 55% / 0.08) 0%, transparent 70%)" }}
         />
       </div>
 
@@ -52,7 +36,6 @@ const HeroSection = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="space-y-8"
         >
-          {/* Glitch title */}
           <div className="space-y-2">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -82,10 +65,7 @@ const HeroSection = () => {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/games">
-              <Button
-                size="lg"
-                className="font-ui text-lg font-bold px-8 py-6 neon-border group"
-              >
+              <Button size="lg" className="font-ui text-lg font-bold px-8 py-6 neon-border group">
                 Browse Games
                 <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
@@ -101,28 +81,17 @@ const HeroSection = () => {
             </Link>
           </div>
         </motion.div>
-
-        {/* Floating game cards preview */}
-        <motion.div
-          initial={{ opacity: 0, y: 60 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          className="mt-16 flex justify-center gap-4"
-        >
-          {[
-            { color: "from-neon-green/20 to-transparent", delay: 0 },
-            { color: "from-neon-purple/20 to-transparent", delay: 0.5 },
-            { color: "from-neon-blue/20 to-transparent", delay: 1 },
-          ].map((card, i) => (
-            <motion.div
-              key={i}
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 3, delay: card.delay, repeat: Infinity, ease: "easeInOut" }}
-              className={`w-32 sm:w-44 h-48 sm:h-64 rounded-lg bg-gradient-to-b ${card.color} border border-border/50 backdrop-blur-sm`}
-            />
-          ))}
-        </motion.div>
       </div>
+
+      {/* Auto-scrolling game showcase */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8, duration: 1 }}
+        className="w-full mt-12"
+      >
+        <GameShowcase />
+      </motion.div>
     </section>
   );
 };
