@@ -4,10 +4,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Gamepad2, User, LogOut, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useCart } from "@/hooks/useCart";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { itemCount } = useCart();
   const navigate = useNavigate();
 
   const navItems = [
@@ -45,6 +47,20 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-2">
             {user ? (
               <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/profile")}
+                  className="font-ui text-muted-foreground hover:text-primary relative"
+                >
+                  <ShoppingCart className="h-4 w-4 mr-1" />
+                  Cart
+                  {itemCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                      {itemCount}
+                    </span>
+                  )}
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"

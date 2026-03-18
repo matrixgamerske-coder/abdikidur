@@ -71,7 +71,7 @@ const GameCard = ({ id, title, coverImage, price, genre, rating, platform, isFea
           <div className="flex items-center justify-between">
             <span className="font-ui text-xs text-muted-foreground uppercase tracking-wider">{genre}</span>
             <span className="font-display text-lg font-bold text-primary">
-              {price === 0 ? "FREE" : `$${price.toFixed(2)}`}
+              {price === 0 ? "FREE" : `KSH ${price.toFixed(2)}`}
             </span>
           </div>
         </div>

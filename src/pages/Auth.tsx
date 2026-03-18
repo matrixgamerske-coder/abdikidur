@@ -5,6 +5,7 @@ import { Eye, EyeOff, Gamepad2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
 import MatrixRain from "@/components/MatrixRain";
 import Navbar from "@/components/Navbar";
@@ -18,12 +19,19 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (isSignUp && !acceptedTerms) {
+      setError("You must accept the Terms & Conditions and Privacy Policy to create an account.");
+      return;
+    }
+
     setLoading(true);
     try {
       if (isSignUp) {
@@ -119,6 +127,24 @@ const Auth = () => {
                 </div>
               </div>
 
+              {/* Terms & Conditions checkbox - only on signup */}
+              {isSignUp && (
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="terms"
+                    checked={acceptedTerms}
+                    onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                    className="mt-0.5"
+                  />
+                  <label htmlFor="terms" className="font-body text-xs text-muted-foreground leading-relaxed cursor-pointer">
+                    I agree to the{" "}
+                    <span className="text-primary hover:underline">Terms & Conditions</span>,{" "}
+                    <span className="text-primary hover:underline">Privacy Policy</span>, and{" "}
+                    <span className="text-primary hover:underline">Acceptable Use Policy</span>.
+                  </label>
+                </div>
+              )}
+
               {error && (
                 <motion.p
                   initial={{ opacity: 0 }}
@@ -146,7 +172,7 @@ const Auth = () => {
 
             <div className="mt-6 text-center">
               <button
-                onClick={() => { setIsSignUp(!isSignUp); setError(""); }}
+                onClick={() => { setIsSignUp(!isSignUp); setError(""); setAcceptedTerms(false); }}
                 className="font-body text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 {isSignUp

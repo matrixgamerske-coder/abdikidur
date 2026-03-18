@@ -3,9 +3,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useCart } from "@/hooks/useCart";
 import {
   Star, Monitor, Gamepad2, Smartphone, Cpu, HardDrive,
-  MemoryStick, MonitorCheck, Download, ShieldCheck, Loader2, ArrowLeft, Play, X
+  MemoryStick, MonitorCheck, Download, ShieldCheck, Loader2, ArrowLeft, Play, X, ShoppingCart, Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,8 +26,8 @@ const specLabels: Record<string, string> = {
 const GameDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { addToCart, isInCart } = useCart();
   const queryClient = useQueryClient();
-  const [purchasing, setPurchasing] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [downloading, setDownloading] = useState<string | null>(null);
 
@@ -61,6 +62,24 @@ const GameDetail = () => {
     enabled: !!id && !!user,
   });
 
+  const { data: pendingPurchase } = useQuery({
+    queryKey: ["pending-purchase", id, user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await (supabase as any)
+        .from("purchases")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("game_id", id)
+        .eq("payment_status", "pending")
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && !!user,
+    refetchInterval: (query) => query.state.data ? 5000 : false,
+  });
+
   const { data: driveLinks } = useQuery({
     queryKey: ["drive-links", id],
     queryFn: async () => {
@@ -74,30 +93,20 @@ const GameDetail = () => {
     enabled: !!id && !!purchase,
   });
 
-  const handlePurchase = async () => {
+  const handleAddToCart = () => {
     if (!user) {
-      toast.error("Please login to purchase games");
+      toast.error("Please login to add games to cart");
       return;
     }
-    setPurchasing(true);
-    try {
-      const { error } = await (supabase as any)
-        .from("purchases")
-        .insert({
-          user_id: user.id,
-          game_id: id,
-          amount: game.price,
-          payment_status: "completed",
-        });
-      if (error) throw error;
-      toast.success("Purchase successful! Download links are now available.");
-      queryClient.invalidateQueries({ queryKey: ["purchase", id, user.id] });
-      queryClient.invalidateQueries({ queryKey: ["drive-links", id] });
-    } catch (err: any) {
-      toast.error(err.message || "Purchase failed");
-    } finally {
-      setPurchasing(false);
-    }
+    if (!game) return;
+    addToCart({
+      gameId: game.id,
+      title: game.title,
+      price: game.price,
+      coverImage: game.cover_image || "/placeholder.svg",
+      platform: game.platforms?.name || "PC",
+      genre: game.genre || "Action",
+    });
   };
 
   const handleDirectDownload = async (link: any) => {
@@ -154,6 +163,8 @@ const GameDetail = () => {
   const images = game.game_images?.sort((a: any, b: any) => a.sort_order - b.sort_order) || [];
   const specs = game.game_specs || [];
   const hasPurchased = !!purchase;
+  const inCart = isInCart(game.id);
+  const isPending = !!pendingPurchase;
 
   return (
     <div className="relative min-h-screen matrix-grid">
@@ -207,7 +218,6 @@ const GameDetail = () => {
               <img src={game.cover_image || "/placeholder.svg"} alt={game.title} className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
 
-              {/* Watch Gameplay Button */}
               {game.gameplay_video_url && (
                 <button
                   onClick={() => setShowVideo(true)}
@@ -242,7 +252,7 @@ const GameDetail = () => {
                   <span className="font-ui text-lg font-bold">{(game.rating || 0).toFixed(1)}</span>
                 </div>
                 <span className="font-display text-2xl font-black text-primary">
-                  {game.price === 0 ? "FREE" : `$${game.price.toFixed(2)}`}
+                  {game.price === 0 ? "FREE" : `KSH ${game.price.toFixed(2)}`}
                 </span>
               </div>
             </div>
@@ -250,7 +260,6 @@ const GameDetail = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
-              {/* Description */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass rounded-xl border border-border p-6">
                 <h2 className="font-display text-lg font-bold text-foreground mb-4">ABOUT THIS GAME</h2>
                 <p className="font-body text-muted-foreground leading-relaxed whitespace-pre-line">
@@ -258,7 +267,6 @@ const GameDetail = () => {
                 </p>
               </motion.div>
 
-              {/* Watch Gameplay Section */}
               {game.gameplay_video_url && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
                   <h2 className="font-display text-lg font-bold text-foreground mb-4">GAMEPLAY</h2>
@@ -281,7 +289,6 @@ const GameDetail = () => {
                 </motion.div>
               )}
 
-              {/* Screenshots */}
               {images.length > 0 && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="space-y-4">
                   <h2 className="font-display text-lg font-bold text-foreground">SCREENSHOTS</h2>
@@ -295,7 +302,6 @@ const GameDetail = () => {
                 </motion.div>
               )}
 
-              {/* System Requirements */}
               {specs.length > 0 && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
                   <h2 className="font-display text-lg font-bold text-foreground mb-4">SYSTEM REQUIREMENTS</h2>
@@ -323,7 +329,7 @@ const GameDetail = () => {
               )}
             </div>
 
-            {/* Right column - purchase */}
+            {/* Right column - purchase/cart */}
             <div>
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -333,7 +339,7 @@ const GameDetail = () => {
               >
                 <div className="text-center space-y-2">
                   <p className="font-display text-3xl font-black text-primary">
-                    {game.price === 0 ? "FREE" : `$${game.price.toFixed(2)}`}
+                    {game.price === 0 ? "FREE" : `KSH ${game.price.toFixed(2)}`}
                   </p>
                   <p className="font-ui text-xs text-muted-foreground uppercase tracking-wider">
                     {game.platforms?.name} Edition
@@ -370,14 +376,32 @@ const GameDetail = () => {
                       </p>
                     )}
                   </div>
+                ) : isPending ? (
+                  <div className="space-y-4 text-center">
+                    <Loader2 className="h-8 w-8 text-primary animate-spin mx-auto" />
+                    <p className="font-ui text-sm font-bold text-muted-foreground">
+                      Waiting payment confirmation to generate download link...
+                    </p>
+                  </div>
+                ) : inCart ? (
+                  <div className="space-y-3">
+                    <Button disabled className="w-full font-ui text-base font-bold py-6 gap-2" size="lg">
+                      <Check className="h-5 w-5" /> IN CART
+                    </Button>
+                    <Link to="/profile" className="block">
+                      <Button variant="outline" className="w-full font-ui text-sm font-bold border-border gap-2">
+                        <ShoppingCart className="h-4 w-4" /> Go to Cart & Checkout
+                      </Button>
+                    </Link>
+                  </div>
                 ) : (
                   <Button
-                    onClick={handlePurchase}
-                    disabled={purchasing}
-                    className="w-full font-ui text-base font-bold py-6 neon-border"
+                    onClick={handleAddToCart}
+                    className="w-full font-ui text-base font-bold py-6 neon-border gap-2"
                     size="lg"
                   >
-                    {purchasing ? <Loader2 className="h-5 w-5 animate-spin" /> : game.price === 0 ? "GET FOR FREE" : "BUY NOW"}
+                    <ShoppingCart className="h-5 w-5" />
+                    {game.price === 0 ? "ADD TO CART (FREE)" : "ADD TO CART"}
                   </Button>
                 )}
 
