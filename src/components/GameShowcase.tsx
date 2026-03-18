@@ -77,7 +77,7 @@ const GameShowcase = () => {
                     {game.title}
                   </p>
                   <p className="font-ui text-[9px] sm:text-xs text-primary font-bold">
-                    {game.price === 0 ? "FREE" : `$${game.price}`}
+                    {game.price === 0 ? "FREE" : `KSH ${game.price}`}
                   </p>
                 </div>
               </div>
