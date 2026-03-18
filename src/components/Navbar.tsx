@@ -12,9 +12,7 @@ const Navbar = () => {
 
   const navItems = [
     { label: "Home", path: "/" },
-    { label: "PC Games", path: "/games?platform=PC" },
-    { label: "PS Games", path: "/games?platform=PlayStation" },
-    { label: "Mobile", path: "/games?platform=Mobile" },
+    { label: "Admin", path: "/admin" },
   ];
 
   return (
