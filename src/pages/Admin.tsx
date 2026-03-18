@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,7 +6,7 @@ import { Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Trash2, Edit3, Save, X, Loader2, Shield,
-  Monitor, Gamepad2, Smartphone, Upload, Video
+  Monitor, Gamepad2, Smartphone, Upload, Video, ImagePlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,8 +43,9 @@ const Admin = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<GameForm>(emptyForm);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Check admin role
   const { data: isAdmin, isLoading: roleLoading } = useQuery({
     queryKey: ["is-admin", user?.id],
     queryFn: async () => {
@@ -79,6 +80,44 @@ const Admin = () => {
     },
     enabled: !!isAdmin,
   });
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const fileName = `${crypto.randomUUID()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("game-covers")
+        .upload(fileName, file, { contentType: file.type });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("game-covers")
+        .getPublicUrl(fileName);
+
+      setForm((prev) => ({ ...prev, cover_image: publicUrl }));
+      toast.success("Cover image uploaded!");
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const saveMutation = useMutation({
     mutationFn: async (gameData: GameForm & { id?: string }) => {
@@ -251,8 +290,8 @@ const Admin = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="font-ui text-sm font-semibold text-muted-foreground">Price ($)</Label>
-                      <Input type="number" step="0.01" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="bg-muted/50 border-border font-body" />
+                      <Label className="font-ui text-sm font-semibold text-muted-foreground">Price (KSH)</Label>
+                      <Input type="number" step="1" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="bg-muted/50 border-border font-body" />
                     </div>
 
                     <div className="space-y-2">
@@ -260,9 +299,36 @@ const Admin = () => {
                       <Input type="number" step="0.1" min="0" max="5" value={form.rating} onChange={(e) => setForm({ ...form, rating: e.target.value })} className="bg-muted/50 border-border font-body" />
                     </div>
 
+                    {/* Cover Image Upload */}
                     <div className="sm:col-span-2 space-y-2">
-                      <Label className="font-ui text-sm font-semibold text-muted-foreground">Cover Image URL</Label>
-                      <Input value={form.cover_image} onChange={(e) => setForm({ ...form, cover_image: e.target.value })} placeholder="https://..." className="bg-muted/50 border-border font-body" />
+                      <Label className="font-ui text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                        <ImagePlus className="h-4 w-4" /> Cover Image
+                      </Label>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                      <div className="flex gap-3 items-center">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploading}
+                          className="font-ui text-sm border-border gap-2"
+                        >
+                          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                          {uploading ? "Uploading..." : "Upload Image"}
+                        </Button>
+                        {form.cover_image && (
+                          <img src={form.cover_image} alt="Cover preview" className="h-16 w-12 rounded-md object-cover border border-border" />
+                        )}
+                      </div>
+                      {form.cover_image && (
+                        <p className="font-body text-xs text-muted-foreground truncate">{form.cover_image}</p>
+                      )}
                     </div>
 
                     <div className="sm:col-span-2 space-y-2">
@@ -323,7 +389,7 @@ const Admin = () => {
                       </Badge>
                       <span className="font-ui text-muted-foreground">{game.genre}</span>
                       <span className="font-display text-primary font-bold">
-                        {game.price === 0 ? "FREE" : `$${game.price}`}
+                        {game.price === 0 ? "FREE" : `KSH ${game.price}`}
                       </span>
                     </div>
                   </div>
